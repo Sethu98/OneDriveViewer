@@ -1,5 +1,5 @@
 var express = require('express');
-const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta} = require("../handlers");
+const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta, getFileInfo} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
 var router = express.Router();
 
@@ -28,9 +28,33 @@ router.get('/login', function (req, res) {
     });
 
     res.redirect(AUTH_URL + '?' + params);
-
-    console.log(process.env.EXPOSED_URL);
 });
+
+async function getFileData(itemsList) {
+    const response = {};
+
+    for (let item of itemsList) {
+        const meta = await getFilePermissions(AuthHolderInstance.getToken(), item.id);
+
+        response[item.id] = {
+            type: item.folder ? 'folder' : 'file',
+            name: item.name,
+            downloadURL: item['@microsoft.graph.downloadUrl'],
+            itemId: item.id,
+            driveId: item.parentReference.driveId,
+            users: meta.value.map(item => item.grantedTo.user.id)
+        }
+
+        // response.push({
+        //     type: item.folder ? 'folder' : 'file',
+        //     name: item.name,
+        //     downloadURL: item['@microsoft.graph.downloadUrl'],
+        //     itemId: item.id,
+        //     driveId: item.parentReference.driveId,
+        //     users: meta.value.map(item => item.grantedTo.user.id)
+        // });
+    }
+}
 
 router.get('/auth/callback', function (req, res) {
     const authCode = req.query.code;
@@ -62,10 +86,10 @@ router.get('/get_all_files', async function (req, res) {
     } else {
         const driveItems = await getAllFiles(accessToken);
         const response = [];
-        const downloadURLS = [];
 
         for (let item of driveItems) {
             const meta = await getFilePermissions(accessToken, item.parentReference.driveId, item.id);
+            await getFileInfo(accessToken, item.id);
 
             response.push({
                 type: item.folder ? 'folder' : 'file',
@@ -124,7 +148,16 @@ router.post(HOOK_ENDPOINT, async function (req, res) {
 
         const delta = await getDriveDelta(AuthHolderInstance.getToken());
         const changedIds = delta.value.map(item => item.id);
-        console.log('Changed Ids', changedIds);
+        // Looks like all items come in this response
+        // In the interest of time, I'm just gonna fetch info for all of these and send to client
+
+        //
+        // for(let itemId of changedIds) {
+        //     const meta = await getFilePermissions(AuthHolderInstance.getToken(), null, itemId);
+        //     console.log(itemId, meta.value ? meta.value.map(item => item.grantedTo.user.id): []);
+        // }
+
+        // console.log('Changed Ids', changedIds);
     }
 });
 

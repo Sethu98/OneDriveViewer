@@ -17,11 +17,24 @@ async function getAllFiles(accessToken, itemId) {
 const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
 // const getItemPermissionsEndpoint = (driveId, itemId) =>
 //     `/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(itemId)}/permissions`;
-const getItemPermissionsEndpoint = (driveId, itemId) =>
-    `/me/drive/items/${encodeURIComponent(itemId)}/permissions`;
+const getItemPermissionsEndpoint = itemId => `/me/drive/items/${encodeURIComponent(itemId)}/permissions`;
 
-async function getFilePermissions(accessToken, driveId, itemId) {
-    const url = GRAPH_API_URL + getItemPermissionsEndpoint(driveId, itemId);
+async function getFileInfo(accessToken, itemId) {
+    const url = GRAPH_API_URL + '/me/drive/items/' + itemId;
+
+    return await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        method: "GET"
+    }).then(res => res.json()).then(res => {
+        console.log('file info', res);
+        return res;
+    });
+}
+
+async function getFilePermissions(accessToken, itemId) {
+    const url = GRAPH_API_URL + getItemPermissionsEndpoint(itemId);
 
     return await fetch(url, {
         headers: {
@@ -43,8 +56,6 @@ async function addWebhook(accessToken, notificationUrl, expirationDateTime) {
         "clientState": "client-specific string"
     }
 
-    console.log(params);
-
     return await fetch(GRAPH_API_URL + '/subscriptions', {
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -53,7 +64,6 @@ async function addWebhook(accessToken, notificationUrl, expirationDateTime) {
         method: "POST",
         body: JSON.stringify(params)
     }).then(res => res.json()).then(res => {
-        console.log(res);
         return res;
     });
 }
@@ -73,5 +83,6 @@ module.exports = {
     getAllFiles,
     getFilePermissions,
     addWebhook,
-    getDriveDelta
+    getDriveDelta,
+    getFileInfo
 }
