@@ -70,7 +70,7 @@ async function setupSubscriptionIfRequired() {
 
             if (diffMinutes <= WEBHOOK_SUB_TIMEOUT_MINUTES - 5) {
                 console.log("Diff is ", diffMinutes);
-                let createSub = false;
+                createSub = false;
             }
         }
     }

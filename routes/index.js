@@ -80,9 +80,7 @@ router.get('/get_all_files', async function (req, res) {
 
 
 router.post(HOOK_ENDPOINT, async function (req, res) {
-    if (req.query.validationToken) {
-        res.send(req.query.validationToken);
-    } else if(process.env.USE_WEBHOOK === "true") {
+    if(process.env.USE_WEBHOOK === "true") {
         console.log('Update webhook called');
 
         if (AuthHolderInstance.getToken()) {
@@ -92,6 +90,10 @@ router.post(HOOK_ENDPOINT, async function (req, res) {
             ChangeLogInstance.addChanges(fileData);
             console.log("Pushed to file changes", ChangeLogInstance.getLen());
         }
+    }
+
+    if (req.query.validationToken) {
+        res.send(req.query.validationToken);
     }
 });
 

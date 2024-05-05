@@ -29,9 +29,9 @@ const mainSlice = createSlice({
     reducers: {
         updateFiles: (state, action: PayloadAction<ReduxState>) => {
             if (action.payload.files) {
-                // console.log("Updating state");
+                console.log("Updating state");
                 state.files = action.payload.files;
-                // console.log("New state", state);
+                console.log("New state", state);
             }
 
 
