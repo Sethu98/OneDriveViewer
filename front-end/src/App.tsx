@@ -22,7 +22,7 @@ function App() {
 
         source.addEventListener('message', (e) => {
             if (e.data) {
-                console.log(e.data);
+                // console.log(e.data);
                 dispatch(actions.updateFiles(JSON.parse(e.data)));
                 // setRc(rc + 1);
             }

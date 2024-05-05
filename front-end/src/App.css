@@ -51,3 +51,8 @@
 .txt-center {
   text-align: center;
 }
+
+.align-center {
+  display: flex;
+  align-items: center;
+}

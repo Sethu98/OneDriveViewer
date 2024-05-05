@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import {initStore} from "../redux/store";
 import {useSelector} from "react-redux";
 import {FileItem, ReduxState} from "../redux/slice";
-import {Box, Button, List, ListItem, Modal} from "@mui/material";
+import {Box, Button, List, ListItem, Modal, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
 import {Description, Download, Folder} from "@mui/icons-material";
 
 
@@ -22,12 +22,16 @@ function FileComponent(props: FileItem) {
     let [isModalOpen, setModalOpen] = useState(false);
 
     return (
-        <div>
-            <ListItem className={'fi-li'}>
-                <Description sx={{pr: 1}}/>
-                <div>
-                    {props.name}
+        <TableRow className={'fi-li'} key={props.itemId}>
+            <TableCell key={0}>
+                <div className={'align-center'}>
+                    <Description sx={{pr: 1}}/>
+                    <span>
+                        {props.name}
+                    </span>
                 </div>
+            </TableCell>
+            <TableCell key={1}>
                 <Button
                     style={{transform: "scale(0.5)"}}
                     variant="contained"
@@ -36,7 +40,8 @@ function FileComponent(props: FileItem) {
                     download
                 >
                 </Button>
-
+            </TableCell>
+            <TableCell key={2}>
                 <Button
                     style={{transform: "scale(0.7)"}}
                     variant="contained"
@@ -44,7 +49,7 @@ function FileComponent(props: FileItem) {
                 >
                     Sharing Info
                 </Button>
-            </ListItem>
+            </TableCell>
             <Modal
                 // className={'permission-modal'}
                 open={isModalOpen}
@@ -53,7 +58,6 @@ function FileComponent(props: FileItem) {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={modalStyle}>
-
                     <div>
                         <h3 className={'txt-center'}>{props.name}</h3>
                         {props.users.length ?
@@ -66,34 +70,29 @@ function FileComponent(props: FileItem) {
                             :
                             <p className={'txt-center'}>This file is not shared with anybody else</p>}
                     </div>
-
-
                 </Box>
             </Modal>
-        </div>
+        </TableRow>
     )
 }
 
 function FolderComponent(props: FileItem) {
     return (
-        <ListItem className={'fi-li'}>
-            <Folder sx={{pr: 1}}/>
-            <div>
-                {props.name}
-            </div>
-        </ListItem>
+        <TableRow key={props.itemId}>
+            <TableCell key={0}>
+                <div className={'align-center'}>
+                    <Folder sx={{pr: 1}}/>
+                    <span>
+                        {props.name}
+                    </span>
+                </div>
+            </TableCell>
+            <TableCell key={1}></TableCell>
+            <TableCell key={2}></TableCell>
+        </TableRow>
     )
 }
 
-function Item(props: FileItem) {
-    return (
-        <List sx={{
-            padding: '10px',
-        }}>
-            {props.type == 'file' ? <FileComponent {...props} /> : <FolderComponent  {...props}/>}
-        </List>
-    );
-}
 
 export function FilesView() {
     const files = useSelector((state: ReduxState) => {
@@ -101,14 +100,25 @@ export function FilesView() {
         return state.files;
     });
 
-    console.log(Object.keys(files).map(id => files[id].name));
+    // console.log(Object.keys(files).map(id => files[id].name));
 
     return (
         <div>
             {/*<p hidden={true}>{props.id}</p>*/}
-            {
-                files && Object.keys(files).map((itemId, ind) => <Item key={ind} {...files[itemId]} />)
-            }
+            <Table>
+                <TableHead>
+                    {["Name", "Download", "Sharing"].map(v => <TableCell>{v}</TableCell>)}
+                </TableHead>
+                <TableBody>
+                    {
+                        files && Object.keys(files).map((itemId, ind) =>
+                            files[itemId].type == 'file' ?
+                                <FileComponent key={ind} {...files[itemId]} /> :
+                                <FolderComponent key={ind}  {...files[itemId]}/>
+                        )
+                    }
+                </TableBody>
+            </Table>
         </div>
     )
 }

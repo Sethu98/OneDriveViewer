@@ -29,9 +29,9 @@ const mainSlice = createSlice({
     reducers: {
         updateFiles: (state, action: PayloadAction<ReduxState>) => {
             if (action.payload.files) {
-                console.log("Updating state");
+                // console.log("Updating state");
                 state.files = action.payload.files;
-                console.log("New state", state);
+                // console.log("New state", state);
             }
 
 
@@ -45,7 +45,7 @@ const mainSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(getAllFilesThunk.fulfilled, (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
 
             // for (let itemId in action.payload.files) {
             //     state.files[itemId] = action.payload.files[itemId];
