@@ -93,7 +93,7 @@ if (process.env.USE_WEBHOOK === "true") {
     });
 }
 
-const SEND_INTERVAL = 300;
+const SEND_INTERVAL = 500;
 
 const writeEvent = (res, sseId, data) => {
     res.write(`id: ${sseId}\n`);
@@ -123,11 +123,15 @@ router.get('/file_update_stream', function (req, res) {
 
     } else {
         setInterval(async () => {
-            const driveItems = await getAllFiles(AuthHolderInstance.getToken());
-            const resp = await getFileDataForItems(driveItems);
+            const token = AuthHolderInstance.getToken();
 
-            writeEvent(res, sseId, JSON.stringify({files: resp}));
-            console.log("Event sent");
+            if(token) {
+                const driveItems = await getAllFiles(token);
+                const resp = await getFileDataForItems(driveItems);
+
+                writeEvent(res, sseId, JSON.stringify({files: resp}));
+                // console.log("Event sent");
+            }
         }, SEND_INTERVAL);
     }
 

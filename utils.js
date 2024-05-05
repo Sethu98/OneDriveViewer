@@ -10,6 +10,8 @@ async function getFileDataForItems(itemsList) {
 
     for (let item of itemsList) {
         const meta = await getFilePermissions(AuthHolderInstance.getToken(), item.id);
+        const users = meta.value ? meta.value.filter(item => item && item.grantedTo)
+            .map(item => JSON.stringify(item.grantedTo.user)) : [];
 
         response[item.id] = {
             type: item.folder ? 'folder' : 'file',
@@ -17,7 +19,7 @@ async function getFileDataForItems(itemsList) {
             downloadURL: item['@microsoft.graph.downloadUrl'],
             itemId: item.id,
             driveId: item.parentReference.driveId,
-            users: meta.value ? meta.value.filter(item => item && item.grantedTo).map(item => item.grantedTo.user.id) : []
+            users
         }
     }
 
