@@ -13,6 +13,8 @@ var router = express.Router();
 const AUTH_URL = "https://login.live.com/oauth20_authorize.srf";
 const TOKEN_URL = "https://login.live.com/oauth20_token.srf";
 const CLIENT_ID = '9639274e-a585-45d1-b2cf-c7549002c817';
+
+// Ideally, I would put this in a SecretsManager but don't have access to it now
 const CLIENT_SECRET = 'lwR8Q~e9yonQUr~BkADqCA3VaRTkUG9Kz6yIGbIg';
 
 router.get('/', function (req, res) {
