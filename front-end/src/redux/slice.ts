@@ -1,4 +1,4 @@
-import {createSlice} from "@reduxjs/toolkit";
+import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {getAllFilesThunk} from "./thunks";
 
 export type FileItem = {
@@ -24,16 +24,32 @@ const INIT_STATE: ReduxState = {
 const mainSlice = createSlice({
     name: 'mainSlice',
     initialState: INIT_STATE,
-    reducers: {},
+    reducers: {
+        updateFiles: (state, action: PayloadAction<ReduxState>) => {
+            if(action.payload.files) {
+                console.log("Updating state");
+                state.files = action.payload.files;
+                console.log("New state", state);
+            }
+
+
+            // for (let itemId in action.payload) {
+            //     state.files[itemId] = action.payload[itemId];
+            // }
+
+            // return action.payload.files ? action.payload : state;
+            // return action.payload.files;
+        },
+    },
     extraReducers: (builder) => {
         builder.addCase(getAllFilesThunk.fulfilled, (state, action) => {
             console.log(action.payload);
 
-            for (let itemId in action.payload.files) {
-                state.files[itemId] = action.payload.files[itemId];
-            }
+            // for (let itemId in action.payload.files) {
+            //     state.files[itemId] = action.payload.files[itemId];
+            // }
 
-            // state.files = {...state.files, ...action.payload.files};
+            state.files = action.payload.files;
         });
     }
 });

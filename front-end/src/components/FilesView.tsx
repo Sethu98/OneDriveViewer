@@ -83,19 +83,17 @@ function Item(props: FileItem) {
     );
 }
 
-export function FilesView() {
-    useEffect(() => {
-        initStore()
-    }, []); // Empty dependency array (Run only once)
-
-
+export function FilesView(props: {id: number}) {
     const files = useSelector((state: ReduxState) => {
         state = state.default ? state.default : state;
         return state.files;
     });
 
+    console.log(Object.keys(files).map(id => files[id].name));
+
     return (
         <div>
+            <p hidden={true}>{props.id}</p>
             {
                 files && Object.keys(files).map((itemId, ind) => <Item key={ind} {...files[itemId]} />)
             }

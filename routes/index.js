@@ -1,7 +1,7 @@
 var express = require('express');
 const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta, getFileInfo} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
-const {getFileDataForItems, getNMinutesFromNow} = require("../utils");
+const {getFileDataForItems, getNMinutesFromNow, ChangeLogInstance} = require("../utils");
 var router = express.Router();
 
 /* GET home page. */
@@ -44,9 +44,7 @@ router.get('/auth/callback', function (req, res) {
     const response = fetch(TOKEN_URL, {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        method: "POST",
-        body: params
+        }, method: "POST", body: params
     }).then(resp => resp.json()).then((res_json) => {
         AuthHolderInstance.setToken(res_json.access_token);
         res.redirect('http://localhost:3003/files_view');
@@ -61,7 +59,6 @@ router.get('/get_all_files', async function (req, res) {
     } else {
         const driveItems = await getAllFiles(accessToken);
         const resp = await getFileDataForItems(driveItems);
-        console.log(resp);
 
         res.json({
             files: resp
@@ -69,24 +66,8 @@ router.get('/get_all_files', async function (req, res) {
     }
 });
 
-router.get('/file_meta', async function (req, res) {
-    const accessToken = AuthHolderInstance.getToken();
-
-    if (!accessToken) {
-        res.redirect('/login');
-    } else {
-        const driveItems = await getAllFiles(accessToken);
-        const files = driveItems.map(item => item.name);
-
-        res.json({
-            files,
-            driveItems
-        })
-    }
-});
-
 router.get('/add_sub', async function (req, res) {
-    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(10));
+    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(60));
 
     res.json({
         res: resp
@@ -98,22 +79,42 @@ router.post(HOOK_ENDPOINT, async function (req, res) {
     if (req.query.validationToken) {
         res.send(req.query.validationToken);
     } else {
-        console.log(req.body);
-        console.log(req.body.resourceData);
+        if (AuthHolderInstance.getToken()) {
+            const driveItems = await getAllFiles(AuthHolderInstance.getToken());
+            const fileData = await getFileDataForItems(driveItems);
 
-        const delta = await getDriveDelta(AuthHolderInstance.getToken());
-        const changedIds = delta.value.map(item => item.id);
-        // Looks like all items come in this response
-        // In the interest of time, I'm just gonna fetch info for all of these and send to client
-
-        //
-        // for(let itemId of changedIds) {
-        //     const meta = await getFilePermissions(AuthHolderInstance.getToken(), null, itemId);
-        //     console.log(itemId, meta.value ? meta.value.map(item => item.grantedTo.user.id): []);
-        // }
-
-        // console.log('Changed Ids', changedIds);
+            ChangeLogInstance.addChanges(fileData);
+            console.log("Pushed to file changes", ChangeLogInstance.getLen());
+        }
     }
+});
+
+const SEND_INTERVAL = 300;
+
+const writeEvent = (res, sseId, data) => {
+    res.write(`id: ${sseId}\n`);
+    res.write(`data: ${data}\n\n`);
+};
+
+router.get('/file_update_stream', function (req, res) {
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive',
+    });
+
+    const sseId = new Date().toDateString();
+
+    setInterval(() => {
+        // console.log(ChangeLogInstance.hasChanges());
+
+        while (ChangeLogInstance.hasChanges()) {
+            console.log("Changes found");
+            writeEvent(res, sseId, JSON.stringify({
+                files: ChangeLogInstance.popChange()
+            }));
+        }
+    }, SEND_INTERVAL);
+
+    writeEvent(res, sseId, JSON.stringify({cur_len: ChangeLogInstance.getLen()}));
 });
 
 module.exports = router;

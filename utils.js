@@ -13,7 +13,7 @@ async function getFileDataForItems(itemsList) {
             downloadURL: item['@microsoft.graph.downloadUrl'],
             itemId: item.id,
             driveId: item.parentReference.driveId,
-            users: meta.value.map(item => item.grantedTo.user.id)
+            users: meta.value.filter(item => item && item.grantedTo).map(item => item.grantedTo.user.id)
         }
     }
 
@@ -27,7 +27,28 @@ function getNMinutesFromNow(n) {
     return now.toISOString();
 }
 
+class ChangeLog {
+    changes = [];
+
+    addChanges(items) {
+        this.changes.push(items);
+    }
+
+    hasChanges() {
+        return this.changes.length !== 0;
+    }
+
+    popChange() {
+        return this.changes.pop();
+    }
+
+    getLen() {
+        return this.changes.length;
+    }
+}
+
 module.exports = {
     getFileDataForItems,
-    getNMinutesFromNow
+    getNMinutesFromNow,
+    ChangeLogInstance: new ChangeLog()
 }
