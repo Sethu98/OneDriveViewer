@@ -12,11 +12,11 @@ export type FileItem = {
 
 export type ReduxState = {
     default?: ReduxState,
-    files: Array<FileItem>
+    files: { [key: string]: FileItem }
 }
 
 const INIT_STATE: ReduxState = {
-    files: []
+    files: {}
 }
 
 
@@ -28,7 +28,12 @@ const mainSlice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(getAllFilesThunk.fulfilled, (state, action) => {
             console.log(action.payload);
-            state.files = action.payload.files;
+
+            for (let itemId in action.payload.files) {
+                state.files[itemId] = action.payload.files[itemId];
+            }
+
+            // state.files = {...state.files, ...action.payload.files};
         });
     }
 });

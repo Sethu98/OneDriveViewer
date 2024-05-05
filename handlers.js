@@ -1,6 +1,9 @@
 const oneDriveAPI = require("onedrive-api")
-const {Auth} = require('./auth.js');
 
+
+const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
+const getItemEndpoint = itemId => GRAPH_API_URL + `/me/drive/items/${encodeURIComponent(itemId)}`;
+const getItemPermissionsEndpoint = itemId => getItemEndpoint(itemId) + '/permissions';
 
 async function getAllFiles(accessToken, itemId) {
     return await oneDriveAPI.items
@@ -14,13 +17,8 @@ async function getAllFiles(accessToken, itemId) {
 }
 
 
-const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
-// const getItemPermissionsEndpoint = (driveId, itemId) =>
-//     `/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(itemId)}/permissions`;
-const getItemPermissionsEndpoint = itemId => `/me/drive/items/${encodeURIComponent(itemId)}/permissions`;
-
 async function getFileInfo(accessToken, itemId) {
-    const url = GRAPH_API_URL + '/me/drive/items/' + itemId;
+    const url = getItemEndpoint(itemId);
 
     return await fetch(url, {
         headers: {
@@ -34,7 +32,7 @@ async function getFileInfo(accessToken, itemId) {
 }
 
 async function getFilePermissions(accessToken, itemId) {
-    const url = GRAPH_API_URL + getItemPermissionsEndpoint(itemId);
+    const url = getItemPermissionsEndpoint(itemId);
 
     return await fetch(url, {
         headers: {
@@ -81,8 +79,8 @@ async function getDriveDelta(accessToken) {
 
 module.exports = {
     getAllFiles,
+    getFileInfo,
     getFilePermissions,
-    addWebhook,
     getDriveDelta,
-    getFileInfo
+    addWebhook
 }

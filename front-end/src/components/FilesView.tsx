@@ -97,7 +97,7 @@ export function FilesView() {
     return (
         <div>
             {
-                files && files.map((fileItem, ind) => <Item key={ind} {...fileItem} />)
+                files && Object.keys(files).map((itemId, ind) => <Item key={ind} {...files[itemId]} />)
             }
         </div>
     )

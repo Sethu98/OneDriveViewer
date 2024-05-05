@@ -1,6 +1,7 @@
 var express = require('express');
 const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta, getFileInfo} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
+const {getFileDataForItems, getNMinutesFromNow} = require("../utils");
 var router = express.Router();
 
 /* GET home page. */
@@ -29,32 +30,6 @@ router.get('/login', function (req, res) {
 
     res.redirect(AUTH_URL + '?' + params);
 });
-
-async function getFileData(itemsList) {
-    const response = {};
-
-    for (let item of itemsList) {
-        const meta = await getFilePermissions(AuthHolderInstance.getToken(), item.id);
-
-        response[item.id] = {
-            type: item.folder ? 'folder' : 'file',
-            name: item.name,
-            downloadURL: item['@microsoft.graph.downloadUrl'],
-            itemId: item.id,
-            driveId: item.parentReference.driveId,
-            users: meta.value.map(item => item.grantedTo.user.id)
-        }
-
-        // response.push({
-        //     type: item.folder ? 'folder' : 'file',
-        //     name: item.name,
-        //     downloadURL: item['@microsoft.graph.downloadUrl'],
-        //     itemId: item.id,
-        //     driveId: item.parentReference.driveId,
-        //     users: meta.value.map(item => item.grantedTo.user.id)
-        // });
-    }
-}
 
 router.get('/auth/callback', function (req, res) {
     const authCode = req.query.code;
@@ -85,24 +60,11 @@ router.get('/get_all_files', async function (req, res) {
         res.redirect('/login');
     } else {
         const driveItems = await getAllFiles(accessToken);
-        const response = [];
-
-        for (let item of driveItems) {
-            const meta = await getFilePermissions(accessToken, item.parentReference.driveId, item.id);
-            await getFileInfo(accessToken, item.id);
-
-            response.push({
-                type: item.folder ? 'folder' : 'file',
-                name: item.name,
-                downloadURL: item['@microsoft.graph.downloadUrl'],
-                itemId: item.id,
-                driveId: item.parentReference.driveId,
-                users: meta.value.map(item => item.grantedTo.user.id)
-            });
-        }
+        const resp = await getFileDataForItems(driveItems);
+        console.log(resp);
 
         res.json({
-            files: response
+            files: resp
         });
     }
 });
@@ -123,19 +85,12 @@ router.get('/file_meta', async function (req, res) {
     }
 });
 
-function getNMinutesFromNow(n) {
-    const now = new Date(Date.now());
-    now.setMinutes(now.getMinutes() + n);
-
-    return now.toISOString();
-}
-
 router.get('/add_sub', async function (req, res) {
-    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(5));
+    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(10));
 
     res.json({
         res: resp
-    })
+    });
 });
 
 router.post(HOOK_ENDPOINT, async function (req, res) {
