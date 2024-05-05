@@ -53,17 +53,20 @@ router.get('/get_all_files', async function (req, res) {
         res.redirect('/login');
     } else {
         const driveItems = await getAllFiles(accessToken);
+        console.log(driveItems);
         const response = [];
+        const downloadURLS = [];
         for(let item of driveItems) {
             const meta = await getFileMetadata(accessToken, item.parentReference.driveId, item.id);
+
             response.push({
                 type: item.folder ? 'folder' : 'file',
                 name: item.name,
-                downloadURL: item.webUrl,
+                downloadURL: item['@microsoft.graph.downloadUrl'],
                 itemId: item.id,
                 driveId: item.parentReference.driveId,
                 users: meta.value
-            })
+            });
         }
 
         res.json({

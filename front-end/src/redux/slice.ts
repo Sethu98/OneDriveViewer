@@ -5,6 +5,7 @@ export type FileItem = {
     type: 'file' | 'folder',
     name: string,
     downloadURL: string,
+    driveId: string,
     itemId: string
 }
 

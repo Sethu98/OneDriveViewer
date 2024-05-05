@@ -2,16 +2,24 @@ import {useEffect} from "react";
 import {initStore} from "../redux/store";
 import {useSelector} from "react-redux";
 import {FileItem, ReduxState} from "../redux/slice";
-import {List, ListItem} from "@mui/material";
-import {Description, Folder} from "@mui/icons-material";
+import {Button, List, ListItem} from "@mui/material";
+import {Description, Download, Folder} from "@mui/icons-material";
 
 function FileComponent(props: FileItem) {
     return (
-        <ListItem>
-            <Description sx={{ pr: 1 }}/>
+        <ListItem className={'fi-li'}>
+            <Description sx={{pr: 1}}/>
             <div>
                 {props.name}
             </div>
+            <Button
+                style={{transform: "scale(0.5)"}}
+                variant="contained"
+                endIcon={<Download/>}
+                href={props.downloadURL}
+                download
+            >
+            </Button>
         </ListItem>
 
     )
@@ -19,8 +27,8 @@ function FileComponent(props: FileItem) {
 
 function FolderComponent(props: FileItem) {
     return (
-        <ListItem>
-            <Folder sx={{ pr: 1 }}/>
+        <ListItem className={'fi-li'}>
+            <Folder sx={{pr: 1}}/>
             <div>
                 {props.name}
             </div>
@@ -30,7 +38,9 @@ function FolderComponent(props: FileItem) {
 
 function Item(props: FileItem) {
     return (
-        <List>
+        <List sx={{
+            padding: '10px',
+        }}>
             {props.type == 'file' ? <FileComponent {...props} /> : <FolderComponent  {...props}/>}
         </List>
     );
