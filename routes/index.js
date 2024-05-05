@@ -42,28 +42,32 @@ router.get('/auth/callback', function (req, res) {
         body: params
     }).then(resp => resp.json()).then((res_json) => {
         AuthHolderInstance.setToken(res_json.access_token);
-        res.redirect('/');
+        res.redirect('http://localhost:3003/');
     });
 });
 
-router.get('/', async function (req, res) {
+router.get('/get_all_files', async function (req, res) {
     const accessToken = AuthHolderInstance.getToken();
 
     if (!accessToken) {
         res.redirect('/login');
     } else {
         const driveItems = await getAllFiles(accessToken);
-        const files = driveItems.map(item => item.name);
-        const fileMeta = [];
+        const response = [];
         for(let item of driveItems) {
             const meta = await getFileMetadata(accessToken, item.parentReference.driveId, item.id);
-            fileMeta.push(meta);
+            response.push({
+                type: item.folder ? 'folder' : 'file',
+                name: item.name,
+                downloadURL: item.webUrl,
+                itemId: item.id,
+                driveId: item.parentReference.driveId,
+                users: meta.value
+            })
         }
 
         res.json({
-            files,
-            driveItems,
-            fileMeta
+            files: response
         })
     }
 });

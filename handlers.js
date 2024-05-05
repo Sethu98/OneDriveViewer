@@ -13,18 +13,6 @@ async function getAllFiles(accessToken, itemId) {
         .then(resp => resp.value);
 }
 
-//
-// async function getFileMetadata(accessToken, itemId, driveId) {
-//     console.log(itemId);
-//     return await oneDriveAPI.items
-//         .getMetadata({
-//             accessToken,
-//             itemId
-//         }).then(item => {
-//             console.log(item);
-//             return item;
-//         });
-// }
 
 const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
 const getItemPermissionsEndpoint = (driveId, itemId) =>
