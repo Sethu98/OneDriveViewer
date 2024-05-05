@@ -31,7 +31,7 @@ I wasn't able to implement viewing files nested within folders due to the time c
 Do the following steps in order
 
 * Run `npm install && cd front-end && npm install && cd ..`
-* Run `ngrok http http://localhost:3000` in a **separate terminal**
+* Run `sh start_ngrok.sh` in a **separate terminal**
   * Copy the exposed address from the output
   * It should look something like `https://808d-130-245-192-1.ngrok-free.app`
   * Paste it in the env file `project_home/.env` as the value of `EXPOSED_URL`
