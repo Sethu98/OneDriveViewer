@@ -13,7 +13,7 @@ async function getFileDataForItems(itemsList) {
             downloadURL: item['@microsoft.graph.downloadUrl'],
             itemId: item.id,
             driveId: item.parentReference.driveId,
-            users: meta.value.filter(item => item && item.grantedTo).map(item => item.grantedTo.user.id)
+            users: meta.value ? meta.value.filter(item => item && item.grantedTo).map(item => item.grantedTo.user.id): []
         }
     }
 

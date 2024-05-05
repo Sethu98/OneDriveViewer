@@ -47,3 +47,7 @@
   width: 500px;
   background: wheat !important;
 }
+
+.txt-center {
+  text-align: center;
+}

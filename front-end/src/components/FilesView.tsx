@@ -6,13 +6,12 @@ import {Box, Button, List, ListItem, Modal} from "@mui/material";
 import {Description, Download, Folder} from "@mui/icons-material";
 
 
-
 const modalStyle = {
     position: 'absolute' as 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 800,
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
@@ -39,10 +38,11 @@ function FileComponent(props: FileItem) {
                 </Button>
 
                 <Button
+                    style={{transform: "scale(0.7)"}}
                     variant="contained"
                     onClick={() => setModalOpen(true)}
                 >
-                    View permissions
+                    Sharing Info
                 </Button>
             </ListItem>
             <Modal
@@ -53,9 +53,21 @@ function FileComponent(props: FileItem) {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={modalStyle}>
-                    <ul>
-                        {props.users.map((user, ind) => <li id={String(ind)}>{user}</li>)}
-                    </ul>
+
+                    <div>
+                        <h3 className={'txt-center'}>{props.name}</h3>
+                        {props.users.length ?
+                            <div>
+                                <p>Shared with</p>
+                                <ul>
+                                    {props.users.map((user, ind) => <li id={String(ind)}>{user}</li>)}
+                                </ul>
+                            </div>
+                            :
+                            <p className={'txt-center'}>This file is not shared with anybody else</p>}
+                    </div>
+
+
                 </Box>
             </Modal>
         </div>
@@ -83,7 +95,7 @@ function Item(props: FileItem) {
     );
 }
 
-export function FilesView(props: {id: number}) {
+export function FilesView(props: { id: number }) {
     const files = useSelector((state: ReduxState) => {
         state = state.default ? state.default : state;
         return state.files;

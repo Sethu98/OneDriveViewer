@@ -98,19 +98,26 @@ const writeEvent = (res, sseId, data) => {
 
 router.get('/file_update_stream', function (req, res) {
     res.writeHead(200, {
-        'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive',
+        'Content-Type': 'text/event-stream',
+        'Content-Encoding': 'none',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
     });
 
     const sseId = new Date().toDateString();
 
-    setInterval(() => {
+    setInterval(async () => {
         // console.log(ChangeLogInstance.hasChanges());
 
         while (ChangeLogInstance.hasChanges()) {
-            console.log("Changes found");
-            writeEvent(res, sseId, JSON.stringify({
-                files: ChangeLogInstance.popChange()
-            }));
+            // writeEvent(res, sseId, JSON.stringify({
+            //     files: ChangeLogInstance.popChange()
+            // }));
+
+            const driveItems = await getAllFiles(AuthHolderInstance.getToken());
+            const resp = await getFileDataForItems(driveItems);
+            writeEvent(res, sseId, JSON.stringify({files: resp}));
+            console.log("Event sent");
         }
     }, SEND_INTERVAL);
 
