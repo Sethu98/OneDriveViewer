@@ -83,7 +83,7 @@ function Item(props: FileItem) {
     );
 }
 
-export function MainPage() {
+export function FilesView() {
     useEffect(() => {
         initStore()
     }, []); // Empty dependency array (Run only once)
@@ -91,16 +91,13 @@ export function MainPage() {
 
     const files = useSelector((state: ReduxState) => {
         state = state.default ? state.default : state;
-        console.log(state);
         return state.files;
     });
-    console.log(files);
-
 
     return (
         <div>
             {
-                files && files.map(fileItem => <Item {...fileItem} />)
+                files && files.map((fileItem, ind) => <Item key={ind} {...fileItem} />)
             }
         </div>
     )

@@ -15,13 +15,13 @@ async function getAllFiles(accessToken, itemId) {
 
 
 const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
+// const getItemPermissionsEndpoint = (driveId, itemId) =>
+//     `/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(itemId)}/permissions`;
 const getItemPermissionsEndpoint = (driveId, itemId) =>
-    `/drives/${encodeURIComponent(driveId)}/items/${encodeURIComponent(itemId)}/permissions`;
+    `/me/drive/items/${encodeURIComponent(itemId)}/permissions`;
 
-async function getFileMetadata(accessToken, driveId, itemId) {
-    console.log(driveId, itemId);
+async function getFilePermissions(accessToken, driveId, itemId) {
     const url = GRAPH_API_URL + getItemPermissionsEndpoint(driveId, itemId);
-    console.log(url);
 
     return await fetch(url, {
         headers: {
@@ -29,12 +29,49 @@ async function getFileMetadata(accessToken, driveId, itemId) {
         },
         method: "GET"
     }).then(res => res.json()).then(res => {
+        // console.log(res);
+        return res;
+    });
+}
+
+async function addWebhook(accessToken, notificationUrl, expirationDateTime) {
+    const params = {
+        "changeType": "updated",
+        notificationUrl,
+        "resource": "/me/drive/root",
+        expirationDateTime,
+        "clientState": "client-specific string"
+    }
+
+    console.log(params);
+
+    return await fetch(GRAPH_API_URL + '/subscriptions', {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(params)
+    }).then(res => res.json()).then(res => {
         console.log(res);
+        return res;
+    });
+}
+
+async function getDriveDelta(accessToken) {
+    return await fetch(GRAPH_API_URL + '/me/drive/root/delta', {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        method: "GET"
+    }).then(res => res.json()).then(res => {
         return res;
     });
 }
 
 module.exports = {
     getAllFiles,
-    getFileMetadata
+    getFilePermissions,
+    addWebhook,
+    getDriveDelta
 }

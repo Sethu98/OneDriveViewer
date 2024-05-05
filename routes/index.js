@@ -1,5 +1,5 @@
 var express = require('express');
-const {getAllFiles, getFileMetadata} = require("../handlers");
+const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
 var router = express.Router();
 
@@ -12,6 +12,12 @@ const AUTH_URL = "https://login.live.com/oauth20_authorize.srf";
 const TOKEN_URL = "https://login.live.com/oauth20_token.srf";
 const CLIENT_ID = '9639274e-a585-45d1-b2cf-c7549002c817';
 const CLIENT_SECRET = 'lwR8Q~e9yonQUr~BkADqCA3VaRTkUG9Kz6yIGbIg';
+const HOOK_ENDPOINT = '/od_hook';
+const NOTIFICATION_URL = process.env.EXPOSED_URL + HOOK_ENDPOINT;
+
+router.get('/', function (req, res) {
+    res.redirect('http://localhost:3003/');
+});
 
 router.get('/login', function (req, res) {
     const params = new URLSearchParams({
@@ -22,6 +28,8 @@ router.get('/login', function (req, res) {
     });
 
     res.redirect(AUTH_URL + '?' + params);
+
+    console.log(process.env.EXPOSED_URL);
 });
 
 router.get('/auth/callback', function (req, res) {
@@ -42,7 +50,7 @@ router.get('/auth/callback', function (req, res) {
         body: params
     }).then(resp => resp.json()).then((res_json) => {
         AuthHolderInstance.setToken(res_json.access_token);
-        res.redirect('http://localhost:3003/');
+        res.redirect('http://localhost:3003/files_view');
     });
 });
 
@@ -53,11 +61,11 @@ router.get('/get_all_files', async function (req, res) {
         res.redirect('/login');
     } else {
         const driveItems = await getAllFiles(accessToken);
-        console.log(driveItems);
         const response = [];
         const downloadURLS = [];
-        for(let item of driveItems) {
-            const meta = await getFileMetadata(accessToken, item.parentReference.driveId, item.id);
+
+        for (let item of driveItems) {
+            const meta = await getFilePermissions(accessToken, item.parentReference.driveId, item.id);
 
             response.push({
                 type: item.folder ? 'folder' : 'file',
@@ -71,7 +79,7 @@ router.get('/get_all_files', async function (req, res) {
 
         res.json({
             files: response
-        })
+        });
     }
 });
 
@@ -88,6 +96,35 @@ router.get('/file_meta', async function (req, res) {
             files,
             driveItems
         })
+    }
+});
+
+function getNMinutesFromNow(n) {
+    const now = new Date(Date.now());
+    now.setMinutes(now.getMinutes() + n);
+
+    return now.toISOString();
+}
+
+router.get('/add_sub', async function (req, res) {
+    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(5));
+
+    res.json({
+        res: resp
+    })
+});
+
+router.post(HOOK_ENDPOINT, async function (req, res) {
+    console.log('Got something');
+    if (req.query.validationToken) {
+        res.send(req.query.validationToken);
+    } else {
+        console.log(req.body);
+        console.log(req.body.resourceData);
+
+        const delta = await getDriveDelta(AuthHolderInstance.getToken());
+        const changedIds = delta.value.map(item => item.id);
+        console.log('Changed Ids', changedIds);
     }
 });
 
