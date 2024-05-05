@@ -6,7 +6,8 @@ export type FileItem = {
     name: string,
     downloadURL: string,
     driveId: string,
-    itemId: string
+    itemId: string,
+    users: Array<string>
 }
 
 export type ReduxState = {

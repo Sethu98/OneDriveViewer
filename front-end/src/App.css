@@ -39,5 +39,11 @@
 
 .fi-li {
   border: 1px solid red;
-  width: 500px !important;
+  width: 1000px !important;
+}
+
+.permission-modal {
+  height: 500px;
+  width: 500px;
+  background: wheat !important;
 }

@@ -65,7 +65,7 @@ router.get('/get_all_files', async function (req, res) {
                 downloadURL: item['@microsoft.graph.downloadUrl'],
                 itemId: item.id,
                 driveId: item.parentReference.driveId,
-                users: meta.value
+                users: meta.value.map(item => item.grantedTo.user.id)
             });
         }
 
