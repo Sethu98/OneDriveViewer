@@ -76,22 +76,23 @@ router.get('/get_all_files', async function (req, res) {
 //     });
 // });
 
-if (process.env.USE_WEBHOOK === "true") {
-    router.post(HOOK_ENDPOINT, async function (req, res) {
-        console.log('Got something');
-        if (req.query.validationToken) {
-            res.send(req.query.validationToken);
-        } else {
-            if (AuthHolderInstance.getToken()) {
-                const driveItems = await getAllFiles(AuthHolderInstance.getToken());
-                const fileData = await getFileDataForItems(driveItems);
 
-                ChangeLogInstance.addChanges(fileData);
-                console.log("Pushed to file changes", ChangeLogInstance.getLen());
-            }
+router.post(HOOK_ENDPOINT, async function (req, res) {
+    if (req.query.validationToken) {
+        res.send(req.query.validationToken);
+    } else if(process.env.USE_WEBHOOK === "true") {
+        console.log('Update webhook called');
+
+        if (AuthHolderInstance.getToken()) {
+            const driveItems = await getAllFiles(AuthHolderInstance.getToken());
+            const fileData = await getFileDataForItems(driveItems);
+
+            ChangeLogInstance.addChanges(fileData);
+            console.log("Pushed to file changes", ChangeLogInstance.getLen());
         }
-    });
-}
+    }
+});
+
 
 const SEND_INTERVAL = 500;
 
@@ -125,7 +126,7 @@ router.get('/file_update_stream', function (req, res) {
         setInterval(async () => {
             const token = AuthHolderInstance.getToken();
 
-            if(token) {
+            if (token) {
                 const driveItems = await getAllFiles(token);
                 const resp = await getFileDataForItems(driveItems);
 

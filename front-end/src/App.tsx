@@ -9,7 +9,7 @@ import {actions} from "./redux/slice";
 
 
 function App() {
-    const [rc, setRc] = useState(0);
+    // const [rc, setRc] = useState(0);
 
     useEffect(() => {
         initStore();
@@ -24,7 +24,7 @@ function App() {
             if (e.data) {
                 console.log(e.data);
                 dispatch(actions.updateFiles(JSON.parse(e.data)));
-                setRc(rc + 1);
+                // setRc(rc + 1);
             }
         });
 
@@ -42,7 +42,7 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<HomePage/>}/>
-                    <Route path="/files_view" element={<FilesView id={rc}/>}/>
+                    <Route path="/files_view" element={<FilesView/>}/>
                 </Routes>
             </BrowserRouter>
         </Provider>

@@ -95,7 +95,7 @@ function Item(props: FileItem) {
     );
 }
 
-export function FilesView(props: { id: number }) {
+export function FilesView() {
     const files = useSelector((state: ReduxState) => {
         state = state.default ? state.default : state;
         return state.files;
@@ -105,7 +105,7 @@ export function FilesView(props: { id: number }) {
 
     return (
         <div>
-            <p hidden={true}>{props.id}</p>
+            {/*<p hidden={true}>{props.id}</p>*/}
             {
                 files && Object.keys(files).map((itemId, ind) => <Item key={ind} {...files[itemId]} />)
             }
