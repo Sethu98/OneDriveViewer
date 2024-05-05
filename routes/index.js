@@ -1,5 +1,5 @@
 var express = require('express');
-const {getAllFiles} = require("../handlers");
+const {getAllFiles, getFileMetadata} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
 var router = express.Router();
 
@@ -53,7 +53,28 @@ router.get('/', async function (req, res) {
         res.redirect('/login');
     } else {
         const driveItems = await getAllFiles(accessToken);
-        console.log(driveItems);
+        const files = driveItems.map(item => item.name);
+        const fileMeta = [];
+        for(let item of driveItems) {
+            const meta = await getFileMetadata(accessToken, item.parentReference.driveId, item.id);
+            fileMeta.push(meta);
+        }
+
+        res.json({
+            files,
+            driveItems,
+            fileMeta
+        })
+    }
+});
+
+router.get('/file_meta', async function (req, res) {
+    const accessToken = AuthHolderInstance.getToken();
+
+    if (!accessToken) {
+        res.redirect('/login');
+    } else {
+        const driveItems = await getAllFiles(accessToken);
         const files = driveItems.map(item => item.name);
 
         res.json({
