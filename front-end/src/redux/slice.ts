@@ -12,10 +12,12 @@ export type FileItem = {
 
 export type ReduxState = {
     default?: ReduxState,
+    loggedIn: boolean,
     files: { [key: string]: FileItem }
 }
 
 const INIT_STATE: ReduxState = {
+    loggedIn: false,
     files: {}
 }
 
@@ -26,7 +28,7 @@ const mainSlice = createSlice({
     initialState: INIT_STATE,
     reducers: {
         updateFiles: (state, action: PayloadAction<ReduxState>) => {
-            if(action.payload.files) {
+            if (action.payload.files) {
                 console.log("Updating state");
                 state.files = action.payload.files;
                 console.log("New state", state);

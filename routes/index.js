@@ -57,7 +57,9 @@ router.get('/get_all_files', async function (req, res) {
     if (!accessToken) {
         res.redirect('/login');
     } else {
+        console.log("getting drive items");
         const driveItems = await getAllFiles(accessToken);
+        console.log(driveItems);
         const resp = await getFileDataForItems(driveItems);
 
         res.json({
@@ -74,20 +76,22 @@ router.get('/add_sub', async function (req, res) {
     });
 });
 
-router.post(HOOK_ENDPOINT, async function (req, res) {
-    console.log('Got something');
-    if (req.query.validationToken) {
-        res.send(req.query.validationToken);
-    } else {
-        if (AuthHolderInstance.getToken()) {
-            const driveItems = await getAllFiles(AuthHolderInstance.getToken());
-            const fileData = await getFileDataForItems(driveItems);
+if (process.env.USE_WEBHOOK === "true") {
+    router.post(HOOK_ENDPOINT, async function (req, res) {
+        console.log('Got something');
+        if (req.query.validationToken) {
+            res.send(req.query.validationToken);
+        } else {
+            if (AuthHolderInstance.getToken()) {
+                const driveItems = await getAllFiles(AuthHolderInstance.getToken());
+                const fileData = await getFileDataForItems(driveItems);
 
-            ChangeLogInstance.addChanges(fileData);
-            console.log("Pushed to file changes", ChangeLogInstance.getLen());
+                ChangeLogInstance.addChanges(fileData);
+                console.log("Pushed to file changes", ChangeLogInstance.getLen());
+            }
         }
-    }
-});
+    });
+}
 
 const SEND_INTERVAL = 300;
 
@@ -106,22 +110,29 @@ router.get('/file_update_stream', function (req, res) {
 
     const sseId = new Date().toDateString();
 
-    setInterval(async () => {
-        // console.log(ChangeLogInstance.hasChanges());
+    if (process.env.USE_WEBHOOK === "true") {
+        setInterval(() => {
+            while (ChangeLogInstance.hasChanges()) {
+                writeEvent(res, sseId, JSON.stringify({
+                    files: ChangeLogInstance.popChange()
+                }));
 
-        while (ChangeLogInstance.hasChanges()) {
-            // writeEvent(res, sseId, JSON.stringify({
-            //     files: ChangeLogInstance.popChange()
-            // }));
+                console.log("Event sent");
+            }
+        }, SEND_INTERVAL);
 
+    } else {
+        setInterval(async () => {
             const driveItems = await getAllFiles(AuthHolderInstance.getToken());
             const resp = await getFileDataForItems(driveItems);
+
             writeEvent(res, sseId, JSON.stringify({files: resp}));
             console.log("Event sent");
-        }
-    }, SEND_INTERVAL);
+        }, SEND_INTERVAL);
+    }
 
     writeEvent(res, sseId, JSON.stringify({cur_len: ChangeLogInstance.getLen()}));
-});
+})
+;
 
 module.exports = router;
