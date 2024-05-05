@@ -1,0 +1,9 @@
+const WEBHOOK_SUB_TIMEOUT_MINUTES = 60;
+const HOOK_ENDPOINT = '/od_hook';
+const NOTIFICATION_URL = process.env.EXPOSED_URL + HOOK_ENDPOINT;
+
+module.exports = {
+    WEBHOOK_SUB_TIMEOUT_MINUTES,
+    HOOK_ENDPOINT,
+    NOTIFICATION_URL
+}

@@ -1,7 +1,8 @@
 var express = require('express');
 const {getAllFiles, getFilePermissions, addWebhook, getDriveDelta, getFileInfo} = require("../handlers");
 const {AuthHolderInstance} = require("../auth");
-const {getFileDataForItems, getNMinutesFromNow, ChangeLogInstance} = require("../utils");
+const {getFileDataForItems, getNMinutesFromNow, ChangeLogInstance, setupSubscriptionIfRequired} = require("../utils");
+const {WEBHOOK_SUB_TIMEOUT_MINUTES, HOOK_ENDPOINT} = require("../constants");
 var router = express.Router();
 
 /* GET home page. */
@@ -13,8 +14,6 @@ const AUTH_URL = "https://login.live.com/oauth20_authorize.srf";
 const TOKEN_URL = "https://login.live.com/oauth20_token.srf";
 const CLIENT_ID = '9639274e-a585-45d1-b2cf-c7549002c817';
 const CLIENT_SECRET = 'lwR8Q~e9yonQUr~BkADqCA3VaRTkUG9Kz6yIGbIg';
-const HOOK_ENDPOINT = '/od_hook';
-const NOTIFICATION_URL = process.env.EXPOSED_URL + HOOK_ENDPOINT;
 
 router.get('/', function (req, res) {
     res.redirect('http://localhost:3003/');
@@ -45,8 +44,9 @@ router.get('/auth/callback', function (req, res) {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }, method: "POST", body: params
-    }).then(resp => resp.json()).then((res_json) => {
+    }).then(resp => resp.json()).then(async (res_json) => {
         AuthHolderInstance.setToken(res_json.access_token);
+        await setupSubscriptionIfRequired();
         res.redirect('http://localhost:3003/files_view');
     });
 });
@@ -57,9 +57,9 @@ router.get('/get_all_files', async function (req, res) {
     if (!accessToken) {
         res.redirect('/login');
     } else {
-        console.log("getting drive items");
+        // console.log("getting drive items");
         const driveItems = await getAllFiles(accessToken);
-        console.log(driveItems);
+        // console.log(driveItems);
         const resp = await getFileDataForItems(driveItems);
 
         res.json({
@@ -68,13 +68,13 @@ router.get('/get_all_files', async function (req, res) {
     }
 });
 
-router.get('/add_sub', async function (req, res) {
-    const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(60));
-
-    res.json({
-        res: resp
-    });
-});
+// router.get('/add_sub', async function (req, res) {
+//     const resp = await addWebhook(AuthHolderInstance.getToken(), NOTIFICATION_URL, getNMinutesFromNow(WEBHOOK_SUB_TIMEOUT_MINUTES));
+//
+//     res.json({
+//         res: resp
+//     });
+// });
 
 if (process.env.USE_WEBHOOK === "true") {
     router.post(HOOK_ENDPOINT, async function (req, res) {
