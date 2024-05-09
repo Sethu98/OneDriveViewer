@@ -47,6 +47,6 @@ Do the following steps in order
 * Here you can download/view permissions for the files at the root of your drive
 
 ### Using without webhook
-Webhook receipt may not have millisecond latency. To have real time updates, I have version that just polls on certain intervals.
+Webhook receipt may not have millisecond latency. To have real time updates, I have a version that just polls on certain intervals.
 This would be inefficient but fast. To use this, set `USE_WEBHOOK="false"` in `project_home/.env`.
 Changes will be reflected much faster, but this is not the ideal approach.
