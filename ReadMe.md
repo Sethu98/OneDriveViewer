@@ -15,7 +15,7 @@ Demo Videos can be viewed or downloaded from [here](https://drive.google.com/dri
 ### How is it done
 * ExpressJS + React
 * Microsoft Graph API for interacting with One Drive
-* OAuth 2.0 for AAA
+* OAuth 2.0 for Authorization
 * Webhook to get updates whenever something in the drive changes
 
 
