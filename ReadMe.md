@@ -12,7 +12,7 @@ The features are listed below:
 
 Demo Videos can be viewed or downloaded from [here](https://drive.google.com/drive/folders/1rET6uiuSYdIEZs_OJBRQzV6SvIRBJzQp?usp=sharing)
 
-### How is it done
+### Technologies used
 * ExpressJS + React
 * Microsoft Graph API for interacting with One Drive
 * OAuth 2.0 for Authorization
